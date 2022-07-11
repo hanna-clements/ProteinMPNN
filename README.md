@@ -4,15 +4,11 @@ Read [ProteinMPNN paper](https://www.biorxiv.org/content/10.1101/2022.06.03.4945
 
 To run ProteinMPNN clone this github repo and install Python>=3.0, PyTorch, Numpy. 
 
-Full protein backbone models: `vanilla_proteinmpnn`.
-
-CA only models: `ca_proteinmpnn`.
-
 Code organization:
-* `vanilla_proteinmpnn/protein_mpnn_run.py` - the main script to initialialize and run the model.
-* `vanilla_proteinmpnn/protein_mpnn_utils.py` - utility functions for the main script.
-* `vanilla_proteinmpnn/helper_scripts/` - helper functions to parse PDBs, assign which chains to design, which residues to fix, adding AA bias, tying residues etc.
-* `vanilla_proteinmpnn/examples/` - simple code examples.
+* `protein_mpnn_run.py` - the main script to initialialize and run the model.
+* `protein_mpnn_utils.py` - utility functions for the main script.
+* `helper_scripts/` - helper functions to parse PDBs, assign which chains to design, which residues to fix, adding AA bias, tying residues etc.
+* `projects/` - simple code examples.
 -----------------------------------------------------------------------------------------------------
 Input flags:
 ```
@@ -49,106 +45,3 @@ argparser.add_argument("--pssm_log_odds_flag", type=int, default=0, help="0 for 
 argparser.add_argument("--pssm_bias_flag", type=int, default=0, help="0 for False, 1 for True.")
 argparser.add_argument("--tied_positions_jsonl", type=str, default='', help="Path to a dictionary with tied positions for symmetric design.")
 ```
------------------------------------------------------------------------------------------------------
-Example from `vanilla_proteinmpnn/examples/` to design a single PDB file:
-```
-path_to_PDB="../PDB_complexes/pdbs/3HTN.pdb"
-
-output_dir="../PDB_complexes/example_3_outputs"
-if [ ! -d $output_dir ]
-then
-    mkdir -p $output_dir
-fi
-
-chains_to_design="A B" #design only chains A and B while using the context of other chains
-
-python ../protein_mpnn_run.py \
-        --pdb_path $path_to_PDB \
-        --pdb_path_chains "$chains_to_design" \
-        --out_folder $output_dir \
-        --num_seq_per_target 2 \
-        --sampling_temp "0.1" \
-        --batch_size 1
-```
------------------------------------------------------------------------------------------------------
-Example from `vanilla_proteinmpnn/examples/` to design some monomers:
-```
-folder_with_pdbs="../PDB_monomers/pdbs/"
-
-output_dir="../PDB_monomers/example_1_outputs"
-if [ ! -d $output_dir ]
-then
-    mkdir -p $output_dir
-fi
-
-path_for_parsed_chains=$output_dir"/parsed_pdbs.jsonl"
-
-python ../helper_scripts/parse_multiple_chains.py --input_path=$folder_with_pdbs --output_path=$path_for_parsed_chains
-
-python ../protein_mpnn_run.py \
-        --jsonl_path $path_for_parsed_chains \
-        --out_folder $output_dir \
-        --num_seq_per_target 2 \
-        --sampling_temp "0.1" \
-        --batch_size 1
-```
------------------------------------------------------------------------------------------------------
-Example from `vanilla_proteinmpnn/examples/` to design some homomers:
-```
-folder_with_pdbs="../PDB_homooligomers/pdbs/"
-
-output_dir="../PDB_homooligomers/example_6_outputs"
-if [ ! -d $output_dir ]
-then
-    mkdir -p $output_dir
-fi
-
-path_for_parsed_chains=$output_dir"/parsed_pdbs.jsonl"
-path_for_tied_positions=$output_dir"/tied_pdbs.jsonl"
-
-python ../helper_scripts/parse_multiple_chains.py --input_path=$folder_with_pdbs --output_path=$path_for_parsed_chains
-
-python ../helper_scripts/make_tied_positions_dict.py --input_path=$path_for_parsed_chains --output_path=$path_for_tied_positions --homooligomer 1
-
-python ../protein_mpnn_run.py \
-        --jsonl_path $path_for_parsed_chains \
-        --tied_positions_jsonl $path_for_tied_positions \
-        --out_folder $output_dir \
-        --num_seq_per_target 2 \
-        --sampling_temp "0.2" \
-        --batch_size 1
-```
------------------------------------------------------------------------------------------------------
-Example from `vanilla_proteinmpnn/examples/` to design some complexes:
-```
-folder_with_pdbs="../PDB_complexes/pdbs/"
-
-output_dir="../PDB_complexes/example_4_outputs"
-if [ ! -d $output_dir ]
-then
-    mkdir -p $output_dir
-fi
-
-path_for_parsed_chains=$output_dir"/parsed_pdbs.jsonl"
-path_for_assigned_chains=$output_dir"/assigned_pdbs.jsonl"
-path_for_fixed_positions=$output_dir"/fixed_pdbs.jsonl"
-chains_to_design="A C"
-#The first amino acid in the chain corresponds to 1 and not PDB residues index for now.
-fixed_positions="1 2 3 4 5 6 7 8 23 25, 10 11 12 13 14 15 16 17 18 19 20 40" #fixing/not designing residues 1 2 3...25 in chain A and residues 10 11 12...40 in chain C
-
-python ../helper_scripts/parse_multiple_chains.py --input_path=$folder_with_pdbs --output_path=$path_for_parsed_chains
-
-python ../helper_scripts/assign_fixed_chains.py --input_path=$path_for_parsed_chains --output_path=$path_for_assigned_chains --chain_list "$chains_to_design"
-
-python ../helper_scripts/make_fixed_positions_dict.py --input_path=$path_for_parsed_chains --output_path=$path_for_fixed_positions --chain_list "$chains_to_design" --position_list "$fixed_positions"
-
-python ../protein_mpnn_run.py \
-        --jsonl_path $path_for_parsed_chains \
-        --chain_id_jsonl $path_for_assigned_chains \
-        --fixed_positions_jsonl $path_for_fixed_positions \
-        --out_folder $output_dir \
-        --num_seq_per_target 2 \
-        --sampling_temp "0.1" \
-        --batch_size 1
-```
-
