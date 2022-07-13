@@ -162,19 +162,11 @@ def main(args):
         base_folder = base_folder + '/'
     if not os.path.exists(base_folder):
         os.makedirs(base_folder)
-    
-    if not os.path.exists(base_folder + 'seqs'):
-        os.makedirs(base_folder + 'seqs')
-    
-    if args.save_score:
-        if not os.path.exists(base_folder + 'scores'):
-            os.makedirs(base_folder + 'scores')
 
     if args.score_only:
         if not os.path.exists(base_folder + 'score_only'):
             os.makedirs(base_folder + 'score_only')
    
-
     if args.conditional_probs_only:
         if not os.path.exists(base_folder + 'conditional_probs_only'):
             os.makedirs(base_folder + 'conditional_probs_only')
@@ -182,10 +174,6 @@ def main(args):
     if args.unconditional_probs_only:
         if not os.path.exists(base_folder + 'unconditional_probs_only'):
             os.makedirs(base_folder + 'unconditional_probs_only')
- 
-    if args.save_probs:
-        if not os.path.exists(base_folder + 'probs'):
-            os.makedirs(base_folder + 'probs') 
     
     # Timing
     start_time = time.time()
@@ -251,9 +239,9 @@ def main(args):
                 scores = _scores(S, log_probs, mask_for_loss)
                 native_score = scores.cpu().data.numpy()
                 # Generate some sequences
-                ali_file = base_folder + '/seqs/' + batch_clones[0]['name'] + '.fa'
-                score_file = base_folder + '/scores/' + batch_clones[0]['name'] + '.npy'
-                probs_file = base_folder + '/probs/' + batch_clones[0]['name'] + '.npz'
+                ali_file = base_folder + batch_clones[0]['name'] + '.fa'
+                score_file = base_folder + batch_clones[0]['name'] + '.npy'
+                probs_file = base_folder + batch_clones[0]['name'] + '.npz'
                 print(f'Generating sequences for: {name_}')
                 t0 = time.time()
                 with open(ali_file, 'w') as f:
@@ -302,11 +290,7 @@ def main(args):
                                     print_visible_chains = [visible_list_list[0][i] for i in sorted_visible_chain_letters]
                                     native_score_print = np.format_float_positional(np.float32(native_score.mean()), unique=False, precision=4)
                                     script_dir = os.path.dirname(os.path.realpath(__file__))
-                                    try:
-                                        commit_str = subprocess.check_output(f'git --git-dir {script_dir}/../.git rev-parse HEAD', shell=True).decode().strip()
-                                    except subprocess.CalledProcessError:
-                                        commit_str = 'unknown'
-                                    f.write('>{}, score={}, fixed_chains={}, designed_chains={}, model_name={}, git_hash={}\n{}\n'.format(name_, native_score_print, print_visible_chains, print_masked_chains, args.model_name, commit_str, native_seq)) #write the native sequence
+                                    f.write('>{}, score={}, fixed_chains={}, designed_chains={}, model_name={}\n{}\n'.format(name_, native_score_print, print_visible_chains, print_masked_chains, args.model_name, native_seq)) #write the native sequence
                                 start = 0
                                 end = 0
                                 list_of_AAs = []
