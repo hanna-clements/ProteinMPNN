@@ -24,6 +24,15 @@ python3 $PMPNN/protein_mpnn_run.py \
         --sampling_temp "0.1" \
         --batch_size 1
 rm $path_for_parsed_chains
+
 file=${1%.*}
 mkdir $PWD/models
-colabfold_batch --amber --templates --num-recycle 3 --use-gpu-relax $PWD/$file".fa" $PWD"/models"        
+colabfold_batch --templates --num-recycle 3 $PWD/$file".fa" $PWD"/models"
+cd $PWD"/models"
+mkdir bests
+cp *_rank_1_*.pdb bests/
+cp -r ../../mmpsba bests/
+cp ../../mmpbsa_pipe.sh bests/
+cp ../../mmpbsa_pipe_all.sh bests/
+cd bests/
+./mmpbsa_pipe_all.sh

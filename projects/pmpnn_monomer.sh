@@ -6,8 +6,9 @@ python3 $PMPNN/protein_mpnn_run.py \
         --out_folder $PWD \
         --num_seq_per_target $2 \
         --sampling_temp "0.1" \
+        --backbone_noise 0.05 \
         --batch_size 1
 rm $path_for_parsed_chains
 file=${1%.*}
 mkdir $PWD/models
-colabfold_batch --amber --templates --num-recycle 3 --use-gpu-relax $PWD/$file".fa" $PWD"/models"
+colabfold_batch --templates --num-recycle 3 $PWD/$file".fa" $PWD"/models"

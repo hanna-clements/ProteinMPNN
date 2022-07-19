@@ -290,7 +290,7 @@ def main(args):
                                     print_visible_chains = [visible_list_list[0][i] for i in sorted_visible_chain_letters]
                                     native_score_print = np.format_float_positional(np.float32(native_score.mean()), unique=False, precision=4)
                                     script_dir = os.path.dirname(os.path.realpath(__file__))
-                                    f.write('>{}, score={}, fixed_chains={}, designed_chains={}, model_name={}\n{}\n'.format(name_, native_score_print, print_visible_chains, print_masked_chains, args.model_name, native_seq)) #write the native sequence
+                                    #f.write('>{}, score={}, fixed_chains={}, designed_chains={}, model_name={}\n{}\n'.format(name_, native_score_print, print_visible_chains, print_masked_chains, args.model_name, native_seq)) #write the native sequence
                                 start = 0
                                 end = 0
                                 list_of_AAs = []
