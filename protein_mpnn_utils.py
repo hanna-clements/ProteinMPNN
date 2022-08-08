@@ -67,6 +67,9 @@ def parse_PDB_biounits(x, atoms=['N','CA','C'], chain=None):
     if line[:6] == "HETATM" and line[17:17+3] == "MSE":
       line = line.replace("HETATM","ATOM  ")
       line = line.replace("MSE","MET")
+    
+    if line[17:17+3] == "HIE":
+      line = line.replace("HIE","HIS")
 
     if line[:4] == "ATOM":
       ch = line[21:22]

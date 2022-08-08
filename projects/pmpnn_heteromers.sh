@@ -27,7 +27,7 @@ python3 $PMPNN/protein_mpnn_run.py \
 rm $path_for_parsed_chains
 
 file=${1%.*}
-colabfold_batch --templates --num-recycle 10 --num-models 1 $PWD/$file".fa" $PWD
+colabfold_batch --templates --num-recycle 3 $PWD/$file".fa" $PWD
 FILES=*_rank_1_*.pdb
 for f in $FILES
 do
