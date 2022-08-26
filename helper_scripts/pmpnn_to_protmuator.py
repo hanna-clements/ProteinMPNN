@@ -39,7 +39,7 @@ for line in pmpnnfile:
             mutfile.write('\n')
             mutfile.close()
             outfile='PS1165_'+seqid+'_GAKL.pdb'
-         #   print(outfile,'outfile')
+            print(outfile,'outfile')
             subprocess.call(['protMutator', 'mutator.txt', outfile])
             print ("Mutatation complete with:",seqid+'\n')
          #   print (mutation)

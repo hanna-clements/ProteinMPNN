@@ -39,10 +39,10 @@ rm $path_for_parsed_chains
 
 #file=${1%.*}
 python3 $PMPNN/helper_scripts/pmpnn_filter.py "${file}.fa" 0.3
-python3 $PMPNN/helper_scripts/pmpnn_to_protmuator.py ../PS1165_D56RC68S_GAKL.pdb "${file}_pmpnnfilter.fa"
+python3 $PMPNN/helper_scripts/pmpnn_to_protmuator.py ../PS1165_D56C68S_GAKL.pdb "${file}_pmpnnfilter.fa"
 mkdir models
 mv *_Seq* models
-cp -r $PMPNN/mmpbsa models/
+cp -r /shared/Software/mmpbsa_d/mmpbsa models/
 cd models
 FILES=*.pdb
 for f in $FILES

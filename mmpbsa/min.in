@@ -1,0 +1,5 @@
+ &cntrl
+  imin=1,maxcyc=1000,ncyc=500,
+  cut=999,rgbmax=999,igb=5,saltcon=0.15,
+  ntpr=100
+ /
