@@ -7,6 +7,8 @@ import subprocess
 
 pdbfile=sys.argv[1]
 pmpnnfile=open(sys.argv[2]).readlines()
+binder=sys.argv[3]
+peptide=sys.argv[4]
 refseq=[]
 sequence=''
 seqid=''
@@ -38,7 +40,7 @@ for line in pmpnnfile:
                 mutfile.write(x+',')
             mutfile.write('\n')
             mutfile.close()
-            outfile='PS1165_'+seqid+'_GAKL.pdb'
+            outfile=binder+'_'+seqid+'_'+peptide+'.pdb'
             print(outfile,'outfile')
             subprocess.call(['protMutator', 'mutator.txt', outfile])
             print ("Mutatation complete with:",seqid+'\n')
@@ -61,7 +63,7 @@ for x in mutation:
     mutfile.write(x+',')
 mutfile.write('\n')
 mutfile.close()
-outfile='PS1165_'+seqid+'_GAKL.pdb'
+outfile=binder+'_'+seqid+'_'+peptide+'.pdb'
 #outfile=seqid+'.pdb'
 #print(outfile,'outfile')
 subprocess.call(['protMutator', 'mutator.txt', outfile])
