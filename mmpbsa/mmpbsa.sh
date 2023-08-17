@@ -6,9 +6,9 @@ mutation="$(cut -d'_' -f2 <<< $1)"
 ligand_name=$2
 # Assume the PDB is ready to go (already cleaned and treated with ProPKA, pdb4amber)
 # Define subdirectory names. This is what I want changed
-protein_dir=../pdb_files
-ligand_dir=../ligand_files
-results_dir=../"${protein}_${mutation}_${ligand_name}_results"
+protein_dir=./pdb_files
+ligand_dir=./ligand_files
+results_dir=./"${protein}_${mutation}_${ligand_name}_results"
 mkdir -p $results_dir
 # Check if ligand_name.pdb has a corresponding .frcmod file; make one if it doesn't
 if [ ! -f $ligand_dir/$ligand_name.frcmod ]; then
@@ -25,9 +25,9 @@ if [ ! -f $ligand_dir/$ligand_name.frcmod ]; then
 fi
 cd $results_dir
 # copy the protein_mutation.pdb and ligand files to the results directory
-cp ../$protein_dir/$1 .
-cp ../$ligand_dir/${ligand_name}.pdb .
-cp ../$ligand_dir/${ligand_name}.frcmod .
+cp $protein_dir/$1 .
+cp $ligand_dir/${ligand_name}.pdb .
+cp $ligand_dir/${ligand_name}.frcmod .
 # define variables for leap
 cat_site="cat_site"
 rieske="rieske"
@@ -41,11 +41,10 @@ recname="${protein}_${mutation}.pdb"
 ligname="${ligand_name}.pdb"
 cat <<eof> leap.in
   source leaprc.protein.ff19SB
-  loadamberprep ${cat_site}.prep
-  loadamberparams ${cat_site}.frcmod
-  loadamberprep ${rieske}.prep
-  loadamberparams ${rieske}.frcmod
-  loadamberprep 
+  loadamberprep ../${ligand_dir}/${cat_site}.prep
+  loadamberparams ../${ligand_dir}/${cat_site}.frcmod
+  loadamberprep ../${ligand_dir}/${rieske}.prep
+  loadamberparams ../${ligand_dir}/${rieske}.frcmod
   addAtomTypes { { "ZN" "Zn" "sp3" } { "S3" "S" "sp3" } { "N2" "N" "sp3" } }
   set default PBradii mbondi2
 
