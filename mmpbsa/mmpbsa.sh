@@ -37,7 +37,7 @@ mv 2.pdb $ligname
 export CUDA_VISIBLE_DEVICES=$2
 fi
 
-if [ $protein == "PS1165" ]
+if [ $protein == "id1" ]
 then
 cat <<eof> leap.in
   source leaprc.protein.ff19SB
@@ -65,7 +65,7 @@ cat <<eof> leap.in
 
   quit
 eof
-elif [ $protein == "PS1122" ] || [ $protein == "PS621" ]
+elif [ $protein == "id2" ] || [ $protein == "id3" ]
 then
 cat <<eof> leap.in
   source leaprc.protein.ff19SB
