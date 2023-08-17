@@ -1,48 +1,51 @@
 #!/bin/bash
-#python ../mmpbsa/convert_OXT_to_NME.py -i $1 -o $1
+# mmpbsa.sh <protein_mutation.pdb> <ligand_name> <GPU_ID>
 f=$1
 protein="$(cut -d'_' -f1 <<< $1)"
 mutation="$(cut -d'_' -f2 <<< $1)"
-peptide="$(cut -d'_' -f3 <<< $1)"
-#mutation="$(cut -d'_' -f7 <<< $1)"
-#peptide="$(cut -d'_' -f8 <<< $1)"
-peptide=${peptide%.*}
-pwd
-mkdir $mutation
-cp $1 $mutation
-cd $mutation
-echo "Current working directory:"
-pwd
-#comname="${1}_${2}_${3}.pdb"
-#complex="${1}_${2}_${3}"
-#receptor="${1}_${2}"
-#ligand="${3}"
-#recname="${1}_${2}.pdb"
-#ligname="${3}.pdb"
-echo $protein
-echo $mutation
-echo $peptide
+ligand_name=$2
+# Assume the PDB is ready to go (already cleaned and treated with ProPKA, pdb4amber)
+# Define subdirectory names. This is what I want changed
+protein_dir=../pdb_files
+ligand_dir=../ligand_files
+results_dir=../"${protein}_${mutation}_${ligand_name}_results"
+mkdir -p $results_dir
+# Check if ligand_name.pdb has a corresponding .frcmod file; make one if it doesn't
+if [ ! -f $ligand_dir/$ligand_name.frcmod ]; then
+  echo "Running antechamber on ligand"
+  # Ask if the ligand has a non-zero charge
+  read -p "Does the ligand have a non-zero charge? (yes/no): " charge_response
+  if [ "$charge_response" == "yes" ]; then
+    read -p "Enter the ligand charge value: " ligand_charge
+    antechamber -i $ligand_dir/${ligand_name}.pdb -fi pdb -o $ligand_dir/${ligand_name}.mol2 -fo mol2 -c bcc -nc $ligand_charge
+  else
+    antechamber -i $ligand_dir/${ligand_name}.pdb -fi pdb -o $ligand_dir/${ligand_name}.mol2 -fo mol2 -c bcc -nc 0
+  fi
+  parmchk2 -i $ligand_dir/${ligand_name}.mol2 -f mol2 -o $ligand_dir/${ligand_name}.frcmod
+fi
+cd $results_dir
+# copy the protein_mutation.pdb and ligand files to the results directory
+cp ../$protein_dir/$1 .
+cp ../$ligand_dir/${ligand_name}.pdb .
+cp ../$ligand_dir/${ligand_name}.frcmod .
+# define variables for leap
+cat_site="cat_site"
+rieske="rieske"
+recname="${protein}_${mutation}.pdb"
+
 comname=$1
 complex=${1%.*}
 receptor="${protein}_${mutation}"
-ligand="${peptide}"
+ligand="${ligand_name}"
 recname="${protein}_${mutation}.pdb"
-ligname="${peptide}.pdb"
-if [ ! -f $complex.prod.nc ]
-then
-python ../mmpbsa/splitpep.py $comname
-#python ../mmpbsa/convert_OXT_to_NME.py -i $comname -o $comname -rod
-mv 1.pdb $recname
-mv 2.pdb $ligname
-export CUDA_VISIBLE_DEVICES=$2
-fi
-
-if [ $protein == "id1" ]
-then
+ligname="${ligand_name}.pdb"
 cat <<eof> leap.in
   source leaprc.protein.ff19SB
-  loadamberprep ZAFF.prep
-  loadamberparams ZAFF.frcmod
+  loadamberprep ${cat_site}.prep
+  loadamberparams ${cat_site}.frcmod
+  loadamberprep ${rieske}.prep
+  loadamberparams ${rieske}.frcmod
+  loadamberprep 
   addAtomTypes { { "ZN" "Zn" "sp3" } { "S3" "S" "sp3" } { "N2" "N" "sp3" } }
   set default PBradii mbondi2
 
@@ -65,76 +68,12 @@ cat <<eof> leap.in
 
   quit
 eof
-elif [ $protein == "id2" ] || [ $protein == "id3" ]
-then
-cat <<eof> leap.in
-  source leaprc.protein.ff19SB
-  loadamberprep ZAFF.prep
-  loadamberparams ZAFF.frcmod
-  addAtomTypes { { "ZN" "Zn" "sp3" } { "S3" "S" "sp3" } { "N2" "N" "sp3" } }
-  set default PBradii mbondi2
 
-  rec = loadpdb $recname
-  bond rec.84.ZN rec.40.SG
-  bond rec.84.ZN rec.66.SG
-  bond rec.84.ZN rec.78.SG
-  bond rec.84.ZN rec.7.NE2
-
-  bond rec.85.ZN rec.40.SG
-  bond rec.85.ZN rec.37.SG
-  bond rec.85.ZN rec.64.SG
-  bond rec.85.ZN rec.12.SG
-
-  bond rec.86.ZN rec.25.SG
-  bond rec.86.ZN rec.28.SG
-  bond rec.86.ZN rec.46.ND1
-  bond rec.86.ZN rec.49.ND1
-  saveamberparm rec $receptor.prmtop $receptor.inpcrd
-
-  lig = loadpdb $ligname
-  saveamberparm lig $ligand.prmtop $ligand.inpcrd
-
-  com = loadpdb $comname
-  bond com.84.ZN com.40.SG
-  bond com.84.ZN com.66.SG
-  bond com.84.ZN com.78.SG
-  bond com.84.ZN com.7.NE2
-
-  bond com.85.ZN com.40.SG
-  bond com.85.ZN com.37.SG
-  bond com.85.ZN com.64.SG
-  bond com.85.ZN com.12.SG
-
-  bond com.86.ZN com.25.SG
-  bond com.86.ZN com.28.SG
-  bond com.86.ZN com.46.ND1
-  bond com.86.ZN com.49.ND1
-  saveamberparm com $complex.prmtop $complex.inpcrd
-
-  quit
-eof
-else
-cat <<eof> leap.in
-  source leaprc.protein.ff19SB
-  set default PBradii mbondi2
-
-  rec = loadpdb $recname
-  saveamberparm rec $receptor.prmtop $receptor.inpcrd
-
-  lig = loadpdb $ligname
-  saveamberparm lig $ligand.prmtop $ligand.inpcrd
-
-  com = loadpdb $comname
-  saveamberparm com $complex.prmtop $complex.inpcrd
-
-  quit
-eof
-fi
 tleap -f leap.in
 
-if [ ! -f $complex.prod.nc ]
+if [ ! -f $complex.inpcrd ]
 then
-# generate complex trajectory
+    echo "Warning: The file $complex.inpcrd does not exist. Cannot proceed."
 pmemd.cuda -O -i ../mmpbsa/min.in -o $complex.min.out -p $complex.prmtop -c $complex.inpcrd -r $complex.min.rst -ref $complex.inpcrd
 ambpdb -p $complex.prmtop -ext -c $complex.min.rst > $complex.min.pdb
 pmemd.cuda -O -i ../mmpbsa/heat.in -o $complex.heat.out -p $complex.prmtop -c $complex.min.rst -r $complex.heat.rst -x $complex.heat.nc -ref $complex.min.rst
@@ -146,6 +85,6 @@ fi
 
 mpirun -np 45 --use-hwthread-cpus MMPBSA.py.MPI -O -i ../mmpbsa/mmpbsa.in -o $complex.dat -cp $complex.prmtop -rp $receptor.prmtop -lp $ligand.prmtop -y $complex.prod.nc
 #cp ../../results.csv .
-python ../mmpbsa/getEnergies.py -i $complex.dat -o results.csv -b $protein -m $mutation -p $peptide
+python ../mmpbsa/getEnergies.py -i $complex.dat -o results.csv -b $protein -m $mutation -p $ligand_name
 #cp $complex.dat ../../../onedrive/mmpbsa/energies
 #mv results.csv ../../
